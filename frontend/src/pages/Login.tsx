@@ -5,7 +5,7 @@ import { createTeam } from '../services/teamService';
 import type { Team } from '../types/database';
 
 export default function Login({ onStart }: { onStart: (team: Team) => void }) {
-    const FINAL_WORD = 'ESCAPE';
+    const FINAL_WORD = 'FATA MORGANA';
     const [teamName, setTeamName] = useState('');
 
     const handleStart = async () => {

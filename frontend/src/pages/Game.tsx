@@ -66,9 +66,6 @@ export default function Game({ team }: { team: Team }) {
   const question = teamQuestion.questions;
 
   const handleSubmit = async (answer: string) => {
-    const isCorrect =
-      answer.toLowerCase().trim() === question.answer.toLowerCase().trim();
-
     try {
       const result = await submitAnswer(
         team.id,
@@ -83,11 +80,11 @@ export default function Game({ team }: { team: Team }) {
         }));
       }
 
-      if (isCorrect) {
-        setFeedback({ message: question.answer, explanation: question.answer_description, isCorrect: true });
-      } else {
-        setFeedback({ message: question.answer, explanation: question.answer_description, isCorrect: false });
-      }
+      setFeedback({
+        message: question.answer,
+        explanation: question.answer_description,
+        isCorrect: result.correct,
+      });
     } catch (error) {
       console.error("submitAnswer failed", error);
       setFeedback({ message: "Er is iets misgegaan bij het opslaan van je antwoord.", isCorrect: false });

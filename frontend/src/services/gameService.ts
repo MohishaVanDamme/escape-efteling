@@ -1,10 +1,30 @@
 import { supabase } from "../lib/supabase";
 import type { TeamQuestion } from "../types/database";
+import { RealmEnum } from "../types/realm";
+
+const REGION_ORDER = [
+  RealmEnum.ANDERRIJK,
+  RealmEnum.RUIGRIJK,
+  RealmEnum.REIZENRIJK,
+  RealmEnum.MARERIJK,
+  RealmEnum.SPROOKJESBOS,
+  RealmEnum.FANTASIERIJK,
+];
+
+const shuffleArray = <T,>(array: T[]) => {
+  const copy = [...array];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+};
 
 export const assignTeamQuestionsFromRegion = async (
   teamId: string,
-  region: string
+  _region: string
 ) => {
+  void _region;
   // fetch team's final word length and only assign that many questions
   const { data: teamData, error: teamErr } = await supabase
     .from("teams")
@@ -18,24 +38,155 @@ export const assignTeamQuestionsFromRegion = async (
   const desiredCount = finalWord.length;
   if (desiredCount <= 0) return;
 
-  const { data, error } = await supabase
-    .from("questions")
-    .select("*")
-    .eq("region", region)
-    .order("id", { ascending: true })
-    .limit(desiredCount);
+  const regionCounts: Record<RealmEnum, number> = REGION_ORDER.reduce(
+    (acc, regionName) => {
+      acc[regionName] = 0;
+      return acc;
+    },
+    {} as Record<RealmEnum, number>
+  );
 
-  if (error) throw error;
+  if (desiredCount < REGION_ORDER.length) {
+    for (let i = 0; i < desiredCount; i += 1) {
+      regionCounts[REGION_ORDER[i]] += 1;
+    }
+  } else {
+    regionCounts[RealmEnum.SPROOKJESBOS] = 1;
+    const remainingCount = desiredCount - 1;
+    const otherRegions = REGION_ORDER.filter(
+      (regionName) => regionName !== RealmEnum.SPROOKJESBOS
+    );
+    const baseCount = Math.floor(remainingCount / otherRegions.length);
+    const remainder = remainingCount % otherRegions.length;
 
-  if (!data || data.length === 0) return;
+    otherRegions.forEach((regionName, index) => {
+      regionCounts[regionName] = baseCount + (index < remainder ? 1 : 0);
+    });
+  }
 
-  const inserts = data.map((q, index) => ({
-    team_id: teamId,
-    question_id: q.id,
-    order_index: index,
-  }));
+  const questionsByRegion: Record<RealmEnum, { id: string; level: number }[]> = REGION_ORDER.reduce(
+    (acc, regionName) => {
+      acc[regionName] = [];
+      return acc;
+    },
+    {} as Record<RealmEnum, { id: string; level: number }[]>
+  );
+
+  for (const regionName of REGION_ORDER) {
+    const count = regionCounts[regionName];
+    if (count <= 0) continue;
+
+    const { data, error } = await supabase
+      .from("questions")
+      .select("id, level")
+      .eq("region", regionName)
+      .order("id", { ascending: true });
+
+    if (error) throw error;
+    if (!data || data.length < count) {
+      throw new Error(`Not enough questions available for region ${regionName}`);
+    }
+
+    questionsByRegion[regionName] = data;
+  }
+
+  const selectedQuestionsByRegion: Record<RealmEnum, string[]> = REGION_ORDER.reduce(
+    (acc, regionName) => {
+      acc[regionName] = [];
+      return acc;
+    },
+    {} as Record<RealmEnum, string[]>
+  );
+
+  for (const regionName of REGION_ORDER) {
+    const count = regionCounts[regionName];
+    if (count <= 0) continue;
+
+    const available = questionsByRegion[regionName] ?? [];
+    const levels = Array.from(new Set(available.map((question) => question.level))).sort((a, b) => a - b);
+    const levelCounts: Record<number, number> = levels.reduce((acc, level, index) => {
+      acc[level] = Math.floor(count / levels.length) + (index < count % levels.length ? 1 : 0);
+      return acc;
+    }, {} as Record<number, number>);
+
+    const availableByLevel = levels.reduce((acc, level) => {
+      acc[level] = shuffleArray(available.filter((question) => question.level === level)).map((item) => item.id);
+      return acc;
+    }, {} as Record<number, string[]>);
+
+    const selected: string[] = [];
+    for (const level of levels) {
+      const levelQuestionIds = availableByLevel[level] ?? [];
+      const levelCount = Math.min(levelCounts[level], levelQuestionIds.length);
+      selected.push(...levelQuestionIds.slice(0, levelCount));
+    }
+
+    if (selected.length < count) {
+      const leftovers = shuffleArray(available)
+        .map((item) => item.id)
+        .filter((id) => !selected.includes(id));
+      selected.push(...leftovers.slice(0, count - selected.length));
+    }
+
+    selectedQuestionsByRegion[regionName] = selected;
+  }
+
+  const inserts: Array<{ team_id: string; question_id: string; order_index: number }> = [];
+  let orderIndex = 0;
+
+  for (const regionName of REGION_ORDER) {
+    for (const questionId of selectedQuestionsByRegion[regionName]) {
+      inserts.push({
+        team_id: teamId,
+        question_id: questionId,
+        order_index: orderIndex,
+      });
+      orderIndex += 1;
+    }
+  }
 
   await supabase.from("team_questions").insert(inserts);
+};
+
+const STOP_WORDS = [
+  "de",
+  "het",
+  "een",
+  "den",
+  "der",
+  "en",
+  "van",
+  "op",
+  "in",
+  "te",
+  "uit",
+  "aan",
+  "voor",
+  "met",
+  "zonder",
+  "over",
+  "onder",
+  "bij",
+  "tot",
+  "door",
+];
+
+export const normalizeAnswerText = (text: string) =>
+  text
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .filter((word) => !STOP_WORDS.includes(word))
+    .sort()
+    .join(" ");
+
+export const isAnswerCorrect = (submitted: string, correct: string) => {
+  const normalizedSubmitted = normalizeAnswerText(submitted);
+  const normalizedCorrect = normalizeAnswerText(correct);
+  return normalizedSubmitted === normalizedCorrect;
 };
 
 export const submitAnswer = async (
@@ -43,9 +194,7 @@ export const submitAnswer = async (
   teamQuestion: TeamQuestion,
   answer: string
 ) => {
-  const correct =
-    answer.toLowerCase().trim() ===
-    teamQuestion.questions.answer.toLowerCase().trim();
+  const correct = isAnswerCorrect(answer, teamQuestion.questions.answer);
 
   await supabase
     .from("team_questions")
