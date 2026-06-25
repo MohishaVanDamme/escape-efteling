@@ -1,36 +1,36 @@
-import { useState, useEffect } from 'react'
-import { supabase } from './lib/supabase'
-import { AudioPlayer } from './components/AudioPlayer'
-import type { Question } from './types/database'
+import { useEffect, useState } from "react";
+import Login from "./pages/Login";
+import Game from "./pages/Game";
+import type { Team } from "./types/database";
+import { fetchTeamById } from "./services/teamService";
 
-export default function App() {
-  const [questions, setQuestions] = useState<Question[]>([])
+function App() {
+  const [team, setTeam] = useState<Team | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function getTodos() {
-      const { data: questions } = await supabase.from('questions').select()
-
-      if (questions) {
-        setQuestions(questions)
-      }
+    const savedTeamId = localStorage.getItem("teamId");
+    if (!savedTeamId) {
+      setLoading(false);
+      return;
     }
 
-    getTodos()
-  }, [])
+    fetchTeamById(savedTeamId)
+      .then((team) => {
+        if (team) setTeam(team);
+      })
+      .catch((error) => {
+        console.error("Failed to restore team from DB", error);
+        localStorage.removeItem("teamId");
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
-  return (
-    <div>
-    <p className="text-lg font-bold">Questions</p>
-    <ul>
-      {questions.map((question) => (
-        <li key={question.id}>
-          {question.question}
-          {question.audio_url && (
-            <AudioPlayer audioUrl={question.audio_url} />
-          )}
-        </li>
-      ))}
-    </ul>
-    </div>
-  )
+  if (loading) return <div>Loading...</div>;
+
+  if (!team) return <Login onStart={setTeam} />;
+
+  return <Game team={team} />;
 }
+
+export default App;
