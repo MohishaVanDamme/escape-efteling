@@ -5,10 +5,25 @@ export const assignTeamQuestionsFromRegion = async (
   teamId: string,
   region: string
 ) => {
+  // fetch team's final word length and only assign that many questions
+  const { data: teamData, error: teamErr } = await supabase
+    .from("teams")
+    .select("final_word")
+    .eq("id", teamId)
+    .single();
+
+  if (teamErr) throw teamErr;
+
+  const finalWord: string = teamData?.final_word ?? "";
+  const desiredCount = finalWord.length;
+  if (desiredCount <= 0) return;
+
   const { data, error } = await supabase
     .from("questions")
     .select("*")
-    .eq("region", region);
+    .eq("region", region)
+    .order("id", { ascending: true })
+    .limit(desiredCount);
 
   if (error) throw error;
 
@@ -85,11 +100,31 @@ export const submitAnswer = async (
 
   const newProgress = arr.join("");
   console.log("New progress:", newProgress);
-
+  // update progress in DB
   await supabase
     .from("teams")
     .update({ progress: newProgress })
     .eq("id", teamId);
+
+  // check if there are any unanswered team_questions left
+  const { data: remaining, error: remainingError } = await supabase
+    .from("team_questions")
+    .select("id")
+    .eq("team_id", teamId)
+    .is("answered_at", null);
+
+  if (remainingError) throw remainingError;
+
+  if (!remaining || remaining.length === 0) {
+    const finishedAt = new Date().toISOString();
+    console.log("No remaining questions — setting finished_at:", finishedAt);
+    await supabase
+      .from("teams")
+      .update({ finished_at: finishedAt })
+      .eq("id", teamId);
+
+    return { correct: true, newProgress, finished: true, finishedAt };
+  }
 
   return { correct: true, newProgress };
 };

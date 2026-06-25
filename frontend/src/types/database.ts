@@ -6,6 +6,7 @@ export type Team = {
   started_at: string;
   finished_at: string | null;
   escaped: boolean;
+  escaped_image?: string | null;
   current_question_index: number;
   final_word: string;
   progress: string;

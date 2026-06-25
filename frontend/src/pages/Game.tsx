@@ -6,9 +6,10 @@ import { submitAnswer } from "../services/gameService";
 import { supabase } from "../lib/supabase";
 import type { Team } from "../types/database";
 import { Button } from "@heroui/react";
+import UploadField from "../components/UploadField";
 
 export default function Game({ team }: { team: Team }) {
-  const { teamQuestion, reload } = useGame(team.id);
+  const { teamQuestion, reload, loading } = useGame(team.id);
   const [liveTeam, setLiveTeam] = useState(team);
   const [feedback, setFeedback] = useState<{ message: string; explanation?: string; isCorrect: boolean } | undefined>(undefined);
 
@@ -35,7 +36,32 @@ export default function Game({ team }: { team: Team }) {
     };
   }, [team.id]);
 
-  if (!teamQuestion) return <div>Loading...</div>;
+  if (loading) return <div>Loading...</div>;
+
+  if (!teamQuestion) {
+    return (
+      <div style={{ padding: 20 }}>
+        <h2 className="text-xl font-semibold mb-4">All questions completed — progress</h2>
+        <ProgressWord progress={liveTeam.progress} />
+        <div className="mt-4">
+          {liveTeam.escaped ? (
+            <div>
+              <p>Team has uploaded escape photo.</p>
+              {/** show image if available */}
+              {liveTeam.escaped_image && (
+                <img src={liveTeam.escaped_image} alt="Escape proof" className="mt-2 max-w-xs" />
+              )}
+            </div>
+          ) : (
+            <div>
+              <p className="mb-2">Upload a photo to prove your escape:</p>
+              <UploadField teamId={team.id} teamName={team.name} />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   const question = teamQuestion.questions;
 
