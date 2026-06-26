@@ -19,8 +19,10 @@ export function AnswerInput({ onSubmit, buttonColor }: { onSubmit: (answer: stri
     };
 
     return (
-        <div>
+        <div className="flex flex-col gap-5">
             <Input
+                className="rounded-2xl border border-slate-300 bg-white px-3 py-2 shadow-sm focus-visible:border-slate-400 focus-visible:outline-none focus-visible:ring-0"
+                style={{ borderColor: buttonColor ? buttonColor : undefined }}
                 fullWidth
                 type="text"
                 name="Answer"
@@ -33,7 +35,7 @@ export function AnswerInput({ onSubmit, buttonColor }: { onSubmit: (answer: stri
                 style={{ backgroundColor: buttonColor ? buttonColor : undefined }}
                 onClick={handleSubmit}
                 isDisabled={!answer.trim()}
-                className="w-full"
+                className="w-full rounded-2xl"
             >
                 Antwoorden
             </Button>

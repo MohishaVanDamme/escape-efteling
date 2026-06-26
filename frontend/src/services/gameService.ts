@@ -22,9 +22,8 @@ const shuffleArray = <T,>(array: T[]) => {
 
 export const assignTeamQuestionsFromRegion = async (
   teamId: string,
-  _region: string
 ) => {
-  void _region;
+
   // fetch team's final word length and only assign that many questions
   const { data: teamData, error: teamErr } = await supabase
     .from("teams")

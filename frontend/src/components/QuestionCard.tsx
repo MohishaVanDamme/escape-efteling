@@ -15,32 +15,30 @@ export function QuestionCard({
 }) {
     const realm = getRealm(question.region);
     return (
-        <div>
-            <Card>
-                {question.audio_url && (
-                    <AudioPlayer audioUrl={question.audio_url} />
+        <Card>
+            {question.audio_url && (
+                <AudioPlayer audioUrl={question.audio_url} />
+            )}
+            {question.image_url && (
+                <img className="h-80" src={question.image_url} alt="Question image" />
+            )}
+            <Card.Header>
+                <Card.Title>{question.question}</Card.Title>
+            </Card.Header>
+            <Card.Content>
+                {feedback && (
+                    <div className={`border p-4 rounded ${feedback.isCorrect ? "border-green-500" : "border-red-500"}`}>
+                        <p>{feedback.message}</p>
+                        {feedback.explanation && <p>{feedback.explanation}</p>}
+                    </div>
                 )}
-                {question.image_url && (
-                    <img className="h-80" src={question.image_url} alt="Question image" />
+                {!feedback && (
+                    <AnswerInput
+                        onSubmit={onSubmit}
+                        buttonColor={realm.color}
+                    />
                 )}
-                <Card.Header>
-                    <Card.Title>{question.question}</Card.Title>
-                </Card.Header>
-                <Card.Content>
-                    {feedback && (
-                        <div className={`border p-4 rounded ${feedback.isCorrect ? "border-green-500" : "border-red-500"}`}>
-                            <p>{feedback.message}</p>
-                            {feedback.explanation && <p>{feedback.explanation}</p>}
-                        </div>
-                    )}
-                    {!feedback && (
-                        <AnswerInput
-                            onSubmit={onSubmit}
-                            buttonColor={realm.color}
-                        />
-                    )}
-                </Card.Content>
-            </Card>
-        </div>
+            </Card.Content>
+        </Card>
     );
 }

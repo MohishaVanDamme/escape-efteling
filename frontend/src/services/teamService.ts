@@ -1,14 +1,45 @@
 import { supabase } from "../lib/supabase";
 import type { Team } from "../types/database";
 
+export const checkTeamNameExists = async (name: string) => {
+  const trimmedName = name.trim();
+
+  if (!trimmedName) {
+    return false;
+  }
+
+  const { data, error } = await supabase
+    .from("teams")
+    .select("id")
+    .ilike("name", trimmedName)
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return Boolean(data);
+};
+
 export const createTeam = async (name: string, finalWord: string) => {
+  const trimmedName = name.trim();
+
+  if (!trimmedName) {
+    throw new Error("Team name is required");
+  }
+
+  const teamNameExists = await checkTeamNameExists(trimmedName);
+
+  if (teamNameExists) {
+    throw new Error("Team name already exists");
+  }
+
   const progress = "_".repeat(finalWord.length);
 
   const { data, error } = await supabase
     .from("teams")
     .insert([
       {
-        name,
+        name: trimmedName,
         final_word: finalWord,
         progress,
         started_at: new Date(),

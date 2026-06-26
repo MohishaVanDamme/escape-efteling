@@ -3,6 +3,8 @@ import Login from "./pages/Login";
 import Game from "./pages/Game";
 import type { Team } from "./types/database";
 import { fetchTeamById } from "./services/teamService";
+import SparkleBackground from "./components/SparkleBackground";
+import { Spinner } from "@heroui/react";
 
 function App() {
   const [team, setTeam] = useState<Team | null>(null);
@@ -26,11 +28,27 @@ function App() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div>Loading...</div>;
+  return (
+    <div className="relative min-h-screen overflow-hidden" style={{ backgroundColor: "#F8F1E7" }}>
+      <SparkleBackground
+        backgroundColor="#B71234"
+        sparkleColor="#ffffff"
+        sparkleCount={140}
+      />
 
-  if (!team) return <Login onStart={setTeam} />;
-
-  return <Game team={team} />;
+      <div className="relative z-10 min-h-screen">
+        {loading ? (
+          <div className="flex min-h-screen items-center justify-center">
+             <Spinner size="xl" />
+          </div>
+        ) : !team ? (
+          <Login onStart={setTeam} />
+        ) : (
+          <Game team={team} />
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default App;

@@ -94,18 +94,24 @@ export default function Game({ team }: { team: Team }) {
   console.log('Team progress:', team.progress);
 
   return (
-    <div style={{ padding: 20 }}>
-      <QuestionCard question={question} onSubmit={handleSubmit} feedback={feedback} />
-      {feedback && (
-        <Button
-          onPress={() => {
-            setFeedback(undefined);
-            reload();
-          }}
-        >
-          Volgende vraag
-        </Button>)}
-      <ProgressWord progress={liveTeam.progress} />
+    <div className="flex min-h-screen flex-col justify-between gap-5 p-5" style={{ padding: 20 }}>
+      <div className="flex-1">
+        <QuestionCard question={question} onSubmit={handleSubmit} feedback={feedback} />
+        {feedback && (
+          <Button
+            onPress={() => {
+              setFeedback(undefined);
+              reload();
+            }}
+            className="mt-4 border border-[#842229] text-white rounded-2xl px-4 py-2"
+          >
+            Volgende vraag
+          </Button>)}
+      </div>
+
+      <div className="mt-auto">
+        <ProgressWord progress={liveTeam.progress} />
+      </div>
     </div>
   );
 }
