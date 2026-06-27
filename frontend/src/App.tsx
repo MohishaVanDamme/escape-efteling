@@ -8,12 +8,14 @@ import { Spinner } from "@heroui/react";
 
 function App() {
   const [team, setTeam] = useState<Team | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return Boolean(localStorage.getItem("teamId"));
+  });
 
   useEffect(() => {
     const savedTeamId = localStorage.getItem("teamId");
     if (!savedTeamId) {
-      setLoading(false);
       return;
     }
 
@@ -39,7 +41,7 @@ function App() {
       <div className="relative z-10 min-h-screen">
         {loading ? (
           <div className="flex min-h-screen items-center justify-center">
-             <Spinner size="xl" />
+            <Spinner size="xl" />
           </div>
         ) : !team ? (
           <Login onStart={setTeam} />
