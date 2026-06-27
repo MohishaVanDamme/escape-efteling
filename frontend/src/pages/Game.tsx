@@ -6,12 +6,20 @@ import { submitAnswer } from "../services/gameService";
 import { supabase } from "../lib/supabase";
 import type { Team } from "../types/database";
 import { Button } from "@heroui/react";
-import UploadField from "../components/UploadField";
+import { EndCard } from "../components/EndCard";
+import MissionSuccess from "../components/MissionSuccess";
 
 export default function Game({ team }: { team: Team }) {
   const { teamQuestion, reload, loading } = useGame(team.id);
   const [liveTeam, setLiveTeam] = useState(team);
   const [feedback, setFeedback] = useState<{ message: string; explanation?: string; isCorrect: boolean } | undefined>(undefined);
+
+  const handleTeamEscaped = () => {
+    setLiveTeam((prev) => ({
+      ...prev,
+      escaped: true,
+    }));
+  };
 
   useEffect(() => {
     const channel = supabase
@@ -25,6 +33,8 @@ export default function Game({ team }: { team: Team }) {
             setLiveTeam((prev) => ({
               ...prev,
               progress: payload.new.progress ?? prev.progress,
+              escaped: payload.new.escaped ?? prev.escaped,
+              escaped_image: payload.new.escaped_image ?? prev.escaped_image,
             }));
           }
         }
@@ -40,25 +50,13 @@ export default function Game({ team }: { team: Team }) {
 
   if (!teamQuestion) {
     return (
-      <div style={{ padding: 20 }}>
-        <h2 className="text-xl font-semibold mb-4">All questions completed — progress</h2>
-        <ProgressWord progress={liveTeam.progress} />
-        <div className="mt-4">
-          {liveTeam.escaped ? (
-            <div>
-              <p>Team has uploaded escape photo.</p>
-              {/** show image if available */}
-              {liveTeam.escaped_image && (
-                <img src={liveTeam.escaped_image} alt="Escape proof" className="mt-2 max-w-xs" />
-              )}
-            </div>
-          ) : (
-            <div>
-              <p className="mb-2">Upload a photo to prove your escape:</p>
-              <UploadField teamId={team.id} teamName={team.name} />
-            </div>
-          )}
-        </div>
+      <div>
+        {liveTeam.escaped ? (
+          <MissionSuccess team={team} />
+        ) : (
+          <EndCard liveTeam={liveTeam} team={team} onEscaped={handleTeamEscaped} />
+        )
+        }
       </div>
     );
   }

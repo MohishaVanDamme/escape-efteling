@@ -15,7 +15,7 @@ export function QuestionCard({
 }) {
     const realm = getRealm(question.region);
     return (
-        <Card>
+        <Card className="w-full bg-[#F8F1E7]">
             {question.audio_url && (
                 <AudioPlayer audioUrl={question.audio_url} />
             )}

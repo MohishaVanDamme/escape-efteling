@@ -3,9 +3,6 @@ import { useEffect, useRef, useState } from "react";
 type CellState = "idle" | "flying" | "opening" | "revealed";
 
 export function ProgressWord({ progress }: { progress: string }) {
-    const totalLetters = progress.length;
-    const filledLetters = progress.replace(/_/g, "").length;
-
     const previousProgressRef = useRef(progress);
 
     const [cellStates, setCellStates] = useState<CellState[]>(
@@ -62,12 +59,9 @@ export function ProgressWord({ progress }: { progress: string }) {
     }, [progress]);
 
     return (
-        <div className="mb-6 rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-            <div className="mb-3 flex items-center justify-between text-sm font-medium text-slate-700 dark:text-slate-200">
-                <span>Voortgang woord</span>
-                <span>
-                    {filledLetters}/{totalLetters} letters ingevuld
-                </span>
+        <div className="rounded-3xl border border-slate-200 p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 w-full bg-[#F8F1E7]">
+            <div className="mb-3 flex items-center justify-between text-sm font-medium text-slate-700 dark:text-slate-200 text-center">
+                Sleutel locatie
             </div>
 
             <div className="flex flex-wrap gap-2">
