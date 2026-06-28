@@ -203,6 +203,13 @@ export const submitAnswer = async (
     })
     .eq("id", teamQuestion.id);
 
+  await supabase
+    .from("teams")
+    .update({
+      current_question_index: teamQuestion.order_index + 1,
+    })
+    .eq("id", teamId);
+
   console.log(`Answer submitted for team ${teamId}: ${answer} (correct: ${correct})`);
 
   if (!correct) {

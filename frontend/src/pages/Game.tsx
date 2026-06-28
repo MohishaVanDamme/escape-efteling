@@ -5,23 +5,36 @@ import { useGame } from "../hooks/useGame";
 import { submitAnswer } from "../services/gameService";
 import { supabase } from "../lib/supabase";
 import type { Hint, Team } from "../types/database";
-import { Button } from "@heroui/react";
+import { Button, Spinner } from "@heroui/react";
 import { EndCard } from "../components/EndCard";
 import MissionSuccess from "../components/MissionSuccess";
-import { getQuestionWithHints } from "../services/questionService";
+import { getQuestionWithHints, getTotalQuestionsForTeam } from "../services/questionService";
 import { HintModal } from "../components/HintField";
+import { ProgressBar } from "../components/ProgressBar";
 
 export default function Game({ team }: { team: Team }) {
   const { teamQuestion, reload, loading } = useGame(team.id);
-
+  const [totalQuestions, setTotalQuestions] = useState(0);
   const [liveTeam, setLiveTeam] = useState(team);
+  const [hint, setHint] = useState<Hint | null>(null);
   const [feedback, setFeedback] = useState<
     { message: string; explanation?: string; isCorrect: boolean } | undefined
   >(undefined);
 
-  const [hint, setHint] = useState<Hint | null>(null);
-
   const question = teamQuestion?.questions;
+  const progressPercent =
+  totalQuestions > 0
+    ? Math.round((liveTeam.current_question_index / totalQuestions) * 100)
+    : 0;
+
+  useEffect(() => {
+  const loadTotal = async () => {
+    const total = await getTotalQuestionsForTeam(team.id);
+    setTotalQuestions(total);
+  };
+
+  loadTotal();
+}, [team.id]);
 
   // 🔥 EXTRA: fallback fetch (fix voor jouw probleem)
   const fetchTeam = async () => {
@@ -52,11 +65,12 @@ export default function Game({ team }: { team: Team }) {
           if (payload.new) {
             setLiveTeam((prev) => ({
               ...prev,
+              current_question_index: payload.new.current_question_index ?? prev.current_question_index,
               progress: payload.new.progress ?? prev.progress,
               escaped: payload.new.escaped ?? prev.escaped,
               escaped_image:
                 payload.new.escaped_image ?? prev.escaped_image,
-              hint_count: payload.new.hint_count ?? prev.hint_count, // 🔥 belangrijk
+              hint_count: payload.new.hint_count ?? prev.hint_count,
             }));
           }
         }
@@ -119,7 +133,8 @@ export default function Game({ team }: { team: Team }) {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+
+  if (loading) return <Spinner size="xl" />;
 
   if (!teamQuestion || !question) {
     return (
@@ -136,12 +151,15 @@ export default function Game({ team }: { team: Team }) {
       </div>
     );
   }
+  console.log("ProgressPercent", progressPercent);
+  console.log("totalQuestion", totalQuestions);
+  console.log("Progress", liveTeam.current_question_index);
 
   return (
     <div className="flex min-h-screen flex-col">
       {/* Header */}
-      <div className="flex flex-row justify-between items-center bg-[#F8F1E7] p-5">
-        <p className="text-xl font-bold text-accent">{team.name}</p>
+      <div className="flex flex-row justify-between items-center bg-[#F8F1E7] p-5 gap-2">
+        <ProgressBar percent={progressPercent} />
 
         <HintModal
           hint={hint}

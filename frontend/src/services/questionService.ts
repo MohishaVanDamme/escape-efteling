@@ -38,3 +38,17 @@ export const getQuestionWithHints = async (
 
   return data
 }
+
+export const getTotalQuestionsForTeam = async (teamId: string): Promise<number> => {
+  const { count, error } = await supabase
+    .from("team_questions")
+    .select("*", { count: "exact", head: true })
+    .eq("team_id", teamId);
+
+  if (error) {
+    console.error("Error fetching team questions:", error);
+    return 0;
+  }
+
+  return count || 0;
+};
