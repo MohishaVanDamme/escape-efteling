@@ -10,6 +10,7 @@ export type Team = {
   current_question_index: number;
   final_word: string;
   progress: string;
+  hint_count: number;
 };
 
 export type Question = {
@@ -32,3 +33,10 @@ export type TeamQuestion = {
   answered_at?: string;
   questions: Question;
 };
+
+export type Hint = {
+    id: string;
+    question_id: string;
+    type: 'text' | 'image' | 'audio'
+    content: string
+}

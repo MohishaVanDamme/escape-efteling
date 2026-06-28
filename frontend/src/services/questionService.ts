@@ -1,5 +1,5 @@
 import { supabase } from "../lib/supabase";
-import type { TeamQuestion } from "../types/database";
+import type { Hint, TeamQuestion } from "../types/database";
 
 export const fetchNextTeamQuestion = async (
   teamId: string,
@@ -23,3 +23,18 @@ export const fetchNextTeamQuestion = async (
 
   return data as TeamQuestion | null;
 };
+
+export const getQuestionWithHints = async (
+  questionId: string
+): Promise<Hint> => {
+  const { data, error } = await supabase
+    .from('hints')
+    .select('*')
+    .eq('question_id', questionId)
+    .single()
+
+  if (error) throw error
+  if (!data) throw new Error("No hint found")
+
+  return data
+}

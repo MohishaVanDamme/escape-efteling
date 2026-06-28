@@ -20,7 +20,12 @@ export function QuestionCard({
                 <AudioPlayer audioUrl={question.audio_url} />
             )}
             {question.image_url && (
-                <img className="h-80" src={question.image_url} alt="Question image" />
+                <img
+                    className="max-h-80 w-auto object-contain"
+                    src={question.image_url}
+                    alt="Question image"
+                />
+
             )}
             <Card.Header>
                 <Card.Title>{question.question}</Card.Title>

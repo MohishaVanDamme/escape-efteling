@@ -276,3 +276,26 @@ export const submitAnswer = async (
 
   return { correct: true, newProgress };
 };
+
+export async function useHint(teamId: string) {
+    const { data, error } = await supabase
+        .from("teams")
+        .select("hint_count")
+        .eq("id", teamId)
+        .single();
+
+    if (error) throw error;
+
+    if (data.hint_count >= 3) {
+        throw new Error("Geen hints meer beschikbaar");
+    }
+
+    const { error: updateError } = await supabase
+        .from("teams")
+        .update({ hint_count: data.hint_count + 1 })
+        .eq("id", teamId);
+
+    if (updateError) throw updateError;
+
+    return data.hint_count + 1;
+}

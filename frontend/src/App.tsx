@@ -4,7 +4,7 @@ import Game from "./pages/Game";
 import type { Team } from "./types/database";
 import { fetchTeamById } from "./services/teamService";
 import SparkleBackground from "./components/SparkleBackground";
-import { Spinner } from "@heroui/react";
+import { Spinner, Toast } from "@heroui/react";
 
 function App() {
   const [team, setTeam] = useState<Team | null>(null);
@@ -37,7 +37,7 @@ function App() {
         sparkleColor="#ffffff"
         sparkleCount={140}
       />
-
+      <Toast.Provider />
       <div className="relative z-10 min-h-screen">
         {loading ? (
           <div className="flex min-h-screen items-center justify-center">
