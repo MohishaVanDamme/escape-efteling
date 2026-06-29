@@ -11,6 +11,7 @@ export type Team = {
   final_word: string;
   progress: string;
   hint_count: number;
+  wrong_answers: number;
 };
 
 export type Question = {

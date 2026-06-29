@@ -207,6 +207,25 @@ export const submitAnswer = async (
     .eq("id", teamId);
 
   if (!correct) {
+    // Haal het huidige aantal foute antwoorden op
+    const { data: teamData, error: fetchError } = await supabase
+      .from("teams")
+      .select("wrong_answers")
+      .eq("id", teamId)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    // Verhoog het aantal met 1
+    const { error: updateError } = await supabase
+      .from("teams")
+      .update({
+        wrong_answers: (teamData?.wrong_answers ?? 0) + 1,
+      })
+      .eq("id", teamId);
+
+    if (updateError) throw updateError;
+
     return { correct: false };
   }
 

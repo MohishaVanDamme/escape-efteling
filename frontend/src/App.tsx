@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { Routes, Route } from "react-router-dom";
+import Admin from "./pages/Admin";
 import Login from "./pages/Login";
 import Game from "./pages/Game";
 import type { Team } from "./types/database";
@@ -31,26 +33,40 @@ function App() {
   }, []);
 
   return (
-    <div className="relative min-h-screen overflow-hidden" style={{ backgroundColor: "#F8F1E7" }}>
-      <SparkleBackground
-        backgroundColor="#B71234"
-        sparkleColor="#ffffff"
-        sparkleCount={140}
-      />
-      <Toast.Provider />
-      <div className="relative z-10 min-h-screen">
-        {loading ? (
-          <div className="flex min-h-screen items-center justify-center">
-            <Spinner size="xl" />
-          </div>
-        ) : !team ? (
-          <Login onStart={setTeam} />
-        ) : (
-          <Game team={team} />
-        )}
-      </div>
+    <div
+        className="relative min-h-screen overflow-hidden"
+        style={{ backgroundColor: "#F8F1E7" }}
+    >
+        <SparkleBackground
+            backgroundColor="#B71234"
+            sparkleColor="#ffffff"
+            sparkleCount={140}
+        />
+
+        <Toast.Provider />
+
+        <div className="relative z-10 min-h-screen">
+            <Routes>
+                <Route
+                    path="/"
+                    element={
+                        loading ? (
+                            <div className="flex min-h-screen items-center justify-center">
+                                <Spinner size="xl" />
+                            </div>
+                        ) : !team ? (
+                            <Login onStart={setTeam} />
+                        ) : (
+                            <Game team={team} />
+                        )
+                    }
+                />
+
+                <Route path="/admin" element={<Admin />} />
+            </Routes>
+        </div>
     </div>
-  );
+);
 }
 
 export default App;
