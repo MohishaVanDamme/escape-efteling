@@ -3,7 +3,7 @@ import Login from "./pages/Login";
 import Game from "./pages/Game";
 import type { Team } from "./types/database";
 import { fetchTeamById } from "./services/teamService";
-import SparkleBackground from "./components/SparkleBackground";
+import SparkleBackground from "./components/ui/SparkleBackground";
 import { Spinner, Toast } from "@heroui/react";
 
 function App() {

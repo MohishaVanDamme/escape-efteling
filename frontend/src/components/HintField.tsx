@@ -33,16 +33,10 @@ export function HintModal({
     teamId: string;
 }) {
     const [open, setOpen] = useState(false);
-
-    // 👉 voorkomt dubbel tellen
     const [hasUsedHintForThisQuestion, setHasUsedHintForThisQuestion] = useState(false);
 
     const remainingHints = numberOfHints - usedHints;
-    console.log("Remaining hints: ", remainingHints)
-    console.log("Number of hints: ", numberOfHints)
-    console.log("Used hints: ", usedHints)
 
-    // 🔁 reset bij nieuwe vraag
     useEffect(() => {
         setHasUsedHintForThisQuestion(false);
     }, [hint?.id]);
@@ -53,17 +47,17 @@ export function HintModal({
             return;
         }
 
-        // 👉 al gebruikt? gewoon openen zonder tellen
         if (hasUsedHintForThisQuestion) {
             setOpen(true);
             return;
         }
 
         try {
-            await useHint(teamId); // 👉 DB update
+            await useHint(teamId);
             setHasUsedHintForThisQuestion(true);
             setOpen(true);
         } catch (err) {
+            console.error("Er ging iets mis!\n", err)
             toast.danger("Er ging iets mis!");
         }
     };
@@ -78,7 +72,6 @@ export function HintModal({
                 </Button>
                 <Badge className="bg-[#B71234] border-0 text-white" size="md">{numberOfHints - usedHints}</Badge>
             </BadgeAnchor>
-
             <Modal.Backdrop isOpen={open} onOpenChange={setOpen}>
                 <Modal.Container placement="center">
                     <Modal.Dialog className="bg-[#F8F1E7]">

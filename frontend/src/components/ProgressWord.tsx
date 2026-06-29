@@ -63,7 +63,6 @@ export function ProgressWord({ progress }: { progress: string }) {
             <div className="mb-3 flex items-center justify-between text-sm font-medium text-slate-700 dark:text-slate-200 text-center">
                 Sleutel locatie
             </div>
-
             <div className="flex flex-wrap gap-2">
                 {progress.split("").map((letter, index) => {
                     const state = cellStates[index];

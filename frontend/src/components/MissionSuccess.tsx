@@ -22,7 +22,6 @@ export default function MissionSuccess({ team }: Props) {
 
     const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
-    // 🎉 Confetti vanuit logo
     let origin = { x: 0.5, y: 0.2 };
 
     if (logoRef.current) {
@@ -43,7 +42,6 @@ export default function MissionSuccess({ team }: Props) {
       });
     }
 
-    // ✨ Magic sparkles (blijft doorgaan vanaf het logo)
     const interval = setInterval(() => {
       confettiInstance({
         particleCount: 18,
@@ -65,24 +63,20 @@ export default function MissionSuccess({ team }: Props) {
         <canvas ref={canvasRef} className="h-full w-full" />
       </div>
       <div className="relative z-10 flex flex-col items-center justify-center gap-6 p-6 text-center animate-pop">
-
         <img
           ref={logoRef}
           className="w-40 h-40 rounded-full shadow-xl animate-glow"
           src="/EftelingLogo.png"
           alt="Efteling logo"
         />
-
         <p className="text-5xl md:text-7xl font-extrabold text-white">
           MISSIE GESLAAGD!
         </p>
-
         <div className="flex flex-row items-center justify-center gap-3 text-2xl text-[#B71234]">
           <StarFill className="inline-block w-6 h-6" />
           <p className="border border-[#B71234] bg-[#5c091a] p-2"><strong>{team.name}</strong> is ontsnapt!</p>
           <StarFill className="inline-block w-6 h-6" />
         </div>
-
       </div>
     </div>
   );

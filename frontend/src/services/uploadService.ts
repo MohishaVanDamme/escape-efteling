@@ -17,7 +17,6 @@ export const uploadImageForTeam = async (
   file: File,
   bucket = "uploads"
 ) => {
-  // sanitize team name to use as filename
   const ext = file.name.split(".").pop() || "jpg";
   const safeName = teamName.replace(/[^a-z0-9-_.]/gi, "_").toLowerCase();
   const fileName = `${safeName}.${ext}`;
@@ -26,7 +25,6 @@ export const uploadImageForTeam = async (
   const { data } = supabase.storage.from(bucket).getPublicUrl(fileName);
   const publicUrl = data.publicUrl;
 
-  // mark team as escaped and save image url
   const { error: teamErr } = await supabase
     .from("teams")
     .update({ escaped: true, escaped_image: publicUrl })

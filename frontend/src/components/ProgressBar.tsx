@@ -3,11 +3,7 @@ import { Particles } from "./ui/particels";
 export function ProgressBar({ percent }: { percent: number }) {
   return (
     <div className="w-full max-w-md mx-auto">
-      
-      {/* Container zonder clipping */}
       <div className="relative h-9 bg-gray-300 rounded-full">
-        
-        {/* Fill (WEL clipping) */}
         <div className="absolute inset-0 rounded-full overflow-hidden">
           <div
             className="h-full transition-all duration-700 relative"
@@ -25,8 +21,6 @@ export function ProgressBar({ percent }: { percent: number }) {
             />
           </div>
         </div>
-
-        {/* Pardoes (in de bar, niet geclipt) */}
         <div
           className="absolute top-1/2 -translate-y-1/2 transition-all duration-700 z-20"
           style={{ left: `calc(${percent}% - 24px)` }}

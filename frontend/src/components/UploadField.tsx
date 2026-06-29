@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { uploadImageForTeam } from "../services/uploadService";
 import { Button } from "@heroui/react";
+import { uploadImageForTeam } from "../services/uploadService";
 
 export default function UploadField({
     teamId,
@@ -22,10 +22,8 @@ export default function UploadField({
             setLoading(true);
             setStatus("📡 Aan het uploaden...");
 
-            const url = await uploadImageForTeam(teamId, teamName, file);
+            await uploadImageForTeam(teamId, teamName, file);
 
-            console.log("Geüploade afbeelding:", url);
-            setStatus("🎉 Missie voltooid! Team is ontsnapt!");
             setFile(null);
             onSuccess?.();
         } catch (err) {
@@ -38,8 +36,6 @@ export default function UploadField({
 
     return (
         <div className="flex flex-col items-center gap-4 p-6">
-
-            {/* GAME CARD */}
             <label className="w-full max-w-sm cursor-pointer">
                 <div className={`
                     border-2 border-dashed rounded-2xl p-8 text-center
@@ -66,8 +62,6 @@ export default function UploadField({
                     />
                 </div>
             </label>
-
-            {/* UPLOAD KNOP */}
             <Button
                 onClick={handleUpload}
                 isDisabled={!file || loading}
@@ -81,7 +75,6 @@ export default function UploadField({
                 {loading ? "Aan het uploaden..." : "Upload foto"}
             </Button>
 
-            {/* STATUS */}
             {status && (
                 <div className="text-center font-mono text-sm mt-2">
                     {status}

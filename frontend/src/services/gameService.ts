@@ -24,7 +24,6 @@ export const assignTeamQuestionsFromRegion = async (
   teamId: string,
 ) => {
 
-  // fetch team's final word length and only assign that many questions
   const { data: teamData, error: teamErr } = await supabase
     .from("teams")
     .select("final_word")
@@ -63,13 +62,11 @@ export const assignTeamQuestionsFromRegion = async (
     });
   }
 
-  const questionsByRegion: Record<RealmEnum, { id: string; level: number }[]> = REGION_ORDER.reduce(
-    (acc, regionName) => {
+  const questionsByRegion: Record<RealmEnum, { id: string; level: number }[]> =
+    REGION_ORDER.reduce((acc, regionName) => {
       acc[regionName] = [];
       return acc;
-    },
-    {} as Record<RealmEnum, { id: string; level: number }[]>
-  );
+    }, {} as Record<RealmEnum, { id: string; level: number }[]>);
 
   for (const regionName of REGION_ORDER) {
     const count = regionCounts[regionName];
@@ -78,8 +75,7 @@ export const assignTeamQuestionsFromRegion = async (
     const { data, error } = await supabase
       .from("questions")
       .select("id, level")
-      .eq("region", regionName)
-      .order("id", { ascending: true });
+      .eq("region", regionName);
 
     if (error) throw error;
     if (!data || data.length < count) {
@@ -89,45 +85,45 @@ export const assignTeamQuestionsFromRegion = async (
     questionsByRegion[regionName] = data;
   }
 
-  const selectedQuestionsByRegion: Record<RealmEnum, string[]> = REGION_ORDER.reduce(
-    (acc, regionName) => {
+  const selectedQuestionsByRegion: Record<RealmEnum, string[]> =
+    REGION_ORDER.reduce((acc, regionName) => {
       acc[regionName] = [];
       return acc;
-    },
-    {} as Record<RealmEnum, string[]>
-  );
+    }, {} as Record<RealmEnum, string[]>);
 
   for (const regionName of REGION_ORDER) {
     const count = regionCounts[regionName];
     if (count <= 0) continue;
 
     const available = questionsByRegion[regionName] ?? [];
-    const levels = Array.from(new Set(available.map((question) => question.level))).sort((a, b) => a - b);
-    const levelCounts: Record<number, number> = levels.reduce((acc, level, index) => {
-      acc[level] = Math.floor(count / levels.length) + (index < count % levels.length ? 1 : 0);
-      return acc;
-    }, {} as Record<number, number>);
 
-    const availableByLevel = levels.reduce((acc, level) => {
-      acc[level] = shuffleArray(available.filter((question) => question.level === level)).map((item) => item.id);
-      return acc;
-    }, {} as Record<number, string[]>);
+    const byLevel = {
+      1: shuffleArray(available.filter(q => q.level === 1)),
+      2: shuffleArray(available.filter(q => q.level === 2)),
+      3: shuffleArray(available.filter(q => q.level === 3)),
+    };
 
-    const selected: string[] = [];
-    for (const level of levels) {
-      const levelQuestionIds = availableByLevel[level] ?? [];
-      const levelCount = Math.min(levelCounts[level], levelQuestionIds.length);
-      selected.push(...levelQuestionIds.slice(0, levelCount));
+    const MAX_PER_LEVEL = Math.ceil(count / 2);
+
+    let pool: { id: string; level: number }[] = [];
+
+    for (const level of [1, 2, 3]) {
+      pool.push(...byLevel[level].slice(0, MAX_PER_LEVEL));
     }
 
+    pool = shuffleArray(pool);
+
+    let selected = pool.slice(0, count);
+
     if (selected.length < count) {
-      const leftovers = shuffleArray(available)
-        .map((item) => item.id)
-        .filter((id) => !selected.includes(id));
+      const leftovers = shuffleArray(available).filter(
+        q => !selected.some(s => s.id === q.id)
+      );
+
       selected.push(...leftovers.slice(0, count - selected.length));
     }
 
-    selectedQuestionsByRegion[regionName] = selected;
+    selectedQuestionsByRegion[regionName] = selected.map(q => q.id);
   }
 
   const inserts: Array<{ team_id: string; question_id: string; order_index: number }> = [];
@@ -210,13 +206,10 @@ export const submitAnswer = async (
     })
     .eq("id", teamId);
 
-  console.log(`Answer submitted for team ${teamId}: ${answer} (correct: ${correct})`);
-
   if (!correct) {
     return { correct: false };
   }
 
-  console.log("Fetching latest team progress from DB");
   const { data: teamData, error: teamError } = await supabase
     .from("teams")
     .select("progress, final_word")
@@ -228,18 +221,13 @@ export const submitAnswer = async (
   const currentProgress = teamData.progress as string;
   const currentFinalWord = teamData.final_word as string;
 
-  console.log("Current progress from DB:", currentProgress);
-  console.log("Final word from DB:", currentFinalWord);
-
   const arr = currentProgress.split("");
   const emptyIndexes = arr
     .map((letter, idx) => (letter === "_" ? idx : -1))
     .filter((idx) => idx >= 0);
 
-  console.log("Empty progress indexes:", emptyIndexes);
 
   if (emptyIndexes.length === 0) {
-    console.log("No empty indexes left, progress remains unchanged.");
     const newProgress = currentProgress;
     return { correct: true, newProgress };
   }
@@ -247,21 +235,16 @@ export const submitAnswer = async (
   const randomIndex =
     emptyIndexes[Math.floor(Math.random() * emptyIndexes.length)];
   const chosenLetter = currentFinalWord[randomIndex];
-  console.log(
-    `Chosen random progress index: ${randomIndex}, letter: ${chosenLetter}`
-  );
 
   arr[randomIndex] = chosenLetter;
 
   const newProgress = arr.join("");
-  console.log("New progress:", newProgress);
-  // update progress in DB
+
   await supabase
     .from("teams")
     .update({ progress: newProgress })
     .eq("id", teamId);
 
-  // check if there are any unanswered team_questions left
   const { data: remaining, error: remainingError } = await supabase
     .from("team_questions")
     .select("id")
@@ -272,7 +255,6 @@ export const submitAnswer = async (
 
   if (!remaining || remaining.length === 0) {
     const finishedAt = new Date().toISOString();
-    console.log("No remaining questions — setting finished_at:", finishedAt);
     await supabase
       .from("teams")
       .update({ finished_at: finishedAt })

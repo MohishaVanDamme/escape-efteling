@@ -6,14 +6,8 @@ export function speak(text: string) {
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "nl-NL";
-
-    // 🔥 SNELLER (dit wilde je)
     utterance.rate = 1.05;
-
-    // 🔥 OMA KLANK
     utterance.pitch = 1.15;
-
-    // 🔥 iets zachter/warmer
     utterance.volume = 0.95;
 
     function setVoiceAndSpeak() {

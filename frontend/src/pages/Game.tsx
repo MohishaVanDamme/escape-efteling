@@ -4,8 +4,8 @@ import { ProgressWord } from "../components/ProgressWord";
 import { useGame } from "../hooks/useGame";
 import { submitAnswer } from "../services/gameService";
 import { supabase } from "../lib/supabase";
-import type { Hint, Team } from "../types/database";
-import { Button, Spinner } from "@heroui/react";
+import type { Feedback, Hint, Team } from "../types/database";
+import { Button, Spinner, toast } from "@heroui/react";
 import { EndCard } from "../components/EndCard";
 import MissionSuccess from "../components/MissionSuccess";
 import { getQuestionWithHints, getTotalQuestionsForTeam } from "../services/questionService";
@@ -17,9 +17,7 @@ export default function Game({ team }: { team: Team }) {
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [liveTeam, setLiveTeam] = useState(team);
   const [hint, setHint] = useState<Hint | null>(null);
-  const [feedback, setFeedback] = useState<
-    { message: string; explanation?: string; isCorrect: boolean } | undefined
-  >(undefined);
+  const [feedback, setFeedback] = useState<Feedback | undefined>(undefined);
 
   const question = teamQuestion?.questions;
   const progressPercent =
@@ -36,7 +34,7 @@ export default function Game({ team }: { team: Team }) {
   loadTotal();
 }, [team.id]);
 
-  // 🔥 EXTRA: fallback fetch (fix voor jouw probleem)
+
   const fetchTeam = async () => {
     const { data } = await supabase
       .from("teams")
@@ -49,7 +47,6 @@ export default function Game({ team }: { team: Team }) {
     }
   };
 
-  // 🔁 Realtime team updates
   useEffect(() => {
     const channel = supabase
       .channel(`team-progress-${team.id}`)
@@ -82,7 +79,6 @@ export default function Game({ team }: { team: Team }) {
     };
   }, [team.id]);
 
-  // 🔁 Load hint when question changes
   useEffect(() => {
     if (!question?.id) return;
 
@@ -121,18 +117,15 @@ export default function Game({ team }: { team: Team }) {
 
       setFeedback({
         message: question.answer,
+        type: question.answer_type,
         explanation: question.answer_description,
         isCorrect: result.correct,
       });
     } catch (error) {
       console.error("submitAnswer failed", error);
-      setFeedback({
-        message: "Er is iets misgegaan bij het opslaan van je antwoord.",
-        isCorrect: false,
-      });
+      toast.danger("Er is iets misgegaan bij het opslaan van je antwoord.")
     }
   };
-
 
   if (loading) return <Spinner size="xl" />;
 
@@ -151,13 +144,9 @@ export default function Game({ team }: { team: Team }) {
       </div>
     );
   }
-  console.log("ProgressPercent", progressPercent);
-  console.log("totalQuestion", totalQuestions);
-  console.log("Progress", liveTeam.current_question_index);
 
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Header */}
       <div className="flex flex-row justify-between items-center bg-[#F8F1E7] p-5 gap-2">
         <ProgressBar percent={progressPercent} />
 
@@ -169,7 +158,6 @@ export default function Game({ team }: { team: Team }) {
         />
       </div>
 
-      {/* Content */}
       <div className="flex flex-1 flex-col justify-center items-center w-full gap-5 p-5">
         <div className="w-full">
           <QuestionCard
@@ -184,8 +172,8 @@ export default function Game({ team }: { team: Team }) {
                 onPress={async () => {
                   setFeedback(undefined);
 
-                  await reload();     // nieuwe vraag
-                  await fetchTeam();  // 🔥 FIX: force sync team data
+                  await reload();     
+                  await fetchTeam(); 
                 }}
                 className="border border-[#842229] text-white rounded-2xl px-4 py-2"
               >
@@ -195,7 +183,6 @@ export default function Game({ team }: { team: Team }) {
           )}
         </div>
 
-        {/* Progress */}
         <div className="mt-auto">
           <ProgressWord progress={liveTeam.progress} />
         </div>

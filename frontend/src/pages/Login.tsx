@@ -4,7 +4,7 @@ import { checkTeamNameExists, createTeam } from "../services/teamService";
 import { assignTeamQuestionsFromRegion } from "../services/gameService";
 import type { Team } from "../types/database";
 import { speak } from "../utils/speakFunction";
-import { Typewriter } from "../components/Typewriter";
+import { Typewriter } from "../components/ui/Typewriter";
 import { scenes } from "../types/sceens";
 
 export default function Login({ onStart }: { onStart: (team: Team) => void }) {
@@ -31,7 +31,6 @@ export default function Login({ onStart }: { onStart: (team: Team) => void }) {
     const [isTypingDone, setIsTypingDone] = useState(false);
     const handleTypingDone = useCallback(() => setIsTypingDone(true), []);
 
-    // 🔄 Load progress
     useEffect(() => {
         const started = localStorage.getItem('gameStarted');
 
@@ -40,7 +39,6 @@ export default function Login({ onStart }: { onStart: (team: Team) => void }) {
         }
     }, []);
 
-    // 💾 Save progress
     useEffect(() => {
         localStorage.setItem("introStep", String(step));
     }, [step]);
@@ -49,7 +47,6 @@ export default function Login({ onStart }: { onStart: (team: Team) => void }) {
         localStorage.setItem("teamName", teamName);
     }, [teamName]);
 
-    // 🔊 Speak bij elke scene
     useEffect(() => {
         if (scenes[step]) {
             speak(scenes[step].speech);
@@ -62,7 +59,6 @@ export default function Login({ onStart }: { onStart: (team: Team) => void }) {
         const next = step + 1;
         localStorage.setItem('introStep', String(next));
         if (next >= scenes.length) {
-            // 🔥 intro is klaar
             localStorage.setItem('introFinished', 'true');
         }
 

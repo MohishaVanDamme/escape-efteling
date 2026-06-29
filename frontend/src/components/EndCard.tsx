@@ -13,8 +13,6 @@ export function EndCard({
 }) {
     return (
         <div className="flex flex-col gap-5 p-6 max-w-xl mx-auto text-center">
-
-            {/* 🎉 Titel */}
             <div>
                 <p className="text-4xl font-bold text-center pb-4
                     text-[#F8F1E7] 
@@ -22,8 +20,6 @@ export function EndCard({
                 >
                     Proficiat, {team.name}!
                 </p>
-
-                {/* 📖 Verhaal */}
                 <p className="text-black leading-relaxed">
                     Jullie hebben alle opdrachten voltooid...<br />
                     De geheimen ontrafeld...<br />
@@ -32,9 +28,6 @@ export function EndCard({
                     Maar jullie zijn er nog niet helemaal...
                 </p>
             </div>
-
-
-            {/* 🔐 Laatste opdracht */}
             <div className="bg-[#F8F1E7] p-4 rounded-xl shadow">
                 <p className="text-black text-lg font-semibold">
                     🔐 Laatste stap
@@ -44,16 +37,12 @@ export function EndCard({
                     Alleen dan kunnen jullie écht ontsnappen.
                 </p>
             </div>
-
-            {/* 🔤 Woord */}
             <div>
                 <p className="text-black font-semibold pb-2">
                     Jullie verzamelde letters:
                 </p>
                 <ProgressWord progress={liveTeam.progress} />
             </div>
-
-            {/* 📸 Upload */}
             <div className="bg-[#F8F1E7] p-4 rounded-xl shadow mt-4">
                 <p className="text-black text-xl font-semibold">
                     📸 Bewijs jullie ontsnapping
@@ -61,14 +50,12 @@ export function EndCard({
                 <p className="text-black mb-3">
                     Maak een foto met wat jullie in de kist hebben gevonden.
                 </p>
-
                 <UploadField
                     teamId={team.id}
                     teamName={team.name}
                     onSuccess={onEscaped}
                 />
             </div>
-
         </div>
     );
 }
