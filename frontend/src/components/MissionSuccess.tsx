@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import confetti from "canvas-confetti";
-import {StarFill} from '@gravity-ui/icons';
+import { StarFill } from '@gravity-ui/icons';
 
 type Props = {
   team: {

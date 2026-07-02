@@ -25,7 +25,7 @@ export function AnswerInput({ onSubmit, buttonColor }: { onSubmit: (answer: stri
                 style={{ borderColor: buttonColor ? buttonColor : undefined }}
                 fullWidth
                 type="text"
-                name="Answer"
+                name="Antwoord"
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -37,7 +37,7 @@ export function AnswerInput({ onSubmit, buttonColor }: { onSubmit: (answer: stri
                 isDisabled={!answer.trim()}
                 className="w-full rounded-2xl"
             >
-                Antwoorden
+                Antwoord versturen
             </Button>
         </div>
     )

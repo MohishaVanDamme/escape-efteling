@@ -77,11 +77,10 @@ export function ProgressWord({ progress }: { progress: string }) {
                     return (
                         <div
                             key={index}
-                            className={`flex h-14 w-14 items-center justify-center rounded-2xl border text-xl font-semibold transition ${
-                                isRevealed
+                            className={`flex h-14 w-14 items-center justify-center rounded-2xl border text-xl font-semibold transition ${isRevealed
                                     ? "border-slate-300 bg-white text-slate-900 shadow-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
                                     : "border-dashed border-slate-300 bg-slate-100 text-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500"
-                            }`}
+                                }`}
                         >
                             {showSlot && !isRevealed ? (
                                 <div className="relative flex h-16 w-16 items-center justify-center overflow-visible">

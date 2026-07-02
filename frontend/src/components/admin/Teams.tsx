@@ -25,7 +25,7 @@ export function Teams() {
     return (
         <div className="px-5">
             <p className="text-2xl font-bold py-5 text-center text-[#F8F1E7]">
-                Teams progress
+                Teams voortgang
             </p>
 
             {/* GRID */}
@@ -52,7 +52,7 @@ export function Teams() {
                                         </Chip>
                                     ) : (
                                         <Chip color="warning" variant="primary">
-                                            <Chip.Label>Pending</Chip.Label>
+                                            <Chip.Label>Bezig</Chip.Label>
                                         </Chip>
                                     )}
                                 </div>
@@ -75,7 +75,7 @@ export function Teams() {
                                     </span>
 
                                     <span className="flex items-center gap-1">
-                                         {team.hint_count} <Bulb />
+                                        {team.hint_count} <Bulb />
                                     </span>
                                 </div>
                             </Card.Content>

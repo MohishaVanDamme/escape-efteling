@@ -80,7 +80,7 @@ export function Leaderboard() {
   return (
     <div className="px-5">
       <p className="text-2xl font-bold py-5 text-center text-[#F8F1E7]">
-        Leaderboard
+        Ranglijst
       </p>
 
       {page === 1 && (

@@ -126,7 +126,7 @@ export default function Game({ team }: { team: Team }) {
         isCorrect: result.correct,
       });
     } catch (error) {
-      console.error("submitAnswer failed", error);
+      console.error("submitAnswer is mislukt", error);
       toast.danger("Er is iets misgegaan bij het opslaan van je antwoord.")
     }
   };

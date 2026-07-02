@@ -2,19 +2,19 @@ import { toast } from "@heroui/react";
 import { supabase } from "../lib/supabase";
 
 export const fetchSecretWord = async (): Promise<string> => {
-    const { data, error } = await supabase
-        .from("setting")
-        .select("secret_word")
-        .single();
+  const { data, error } = await supabase
+    .from("setting")
+    .select("secret_word")
+    .single();
 
 
-    if (error) {
-        console.error("Fout bij ophalen geheim woord:", error);
-        toast.danger?.("Kon geheim woord niet ophalen.");
-        return "";
-    }
+  if (error) {
+    console.error("Fout bij ophalen geheim woord:", error);
+    toast.danger?.("Kon geheim woord niet ophalen.");
+    return "";
+  }
 
-    return data.secret_word;
+  return data.secret_word;
 };
 
 export const updateSecretWord = async (

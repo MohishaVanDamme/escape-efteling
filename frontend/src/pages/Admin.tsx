@@ -68,7 +68,7 @@ export default function Admin() {
             <div className="flex min-h-screen items-center justify-center">
                 <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
                     <h1 className="mb-6 text-2xl font-bold text-center">
-                        Admin Login
+                        Beheerder inloggen
                     </h1>
 
                     <div className="flex flex-col gap-4">

@@ -2,7 +2,7 @@ import type { Team } from "../../types/database";
 import { getDuration, getRightAnsweredCount } from "./HelperFunctions";
 import { Stopwatch } from '@gravity-ui/icons';
 
-function PodiumPlaceRenderer({ place, team }: { place: number; team:Team }) {
+function PodiumPlaceRenderer({ place, team }: { place: number; team: Team }) {
     switch (place) {
         case 1:
             return (
@@ -16,7 +16,7 @@ function PodiumPlaceRenderer({ place, team }: { place: number; team:Team }) {
                         </span>
                         <p>{getRightAnsweredCount(team)} van de {team.final_word.length}</p>
                     </div>
-                    
+
                 </div>
 
             )

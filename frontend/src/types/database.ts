@@ -37,15 +37,15 @@ export type TeamQuestion = {
 };
 
 export type Hint = {
-    id: string;
-    question_id: string;
-    type: 'text' | 'image' | 'audio'
-    content: string
+  id: string;
+  question_id: string;
+  type: 'text' | 'image' | 'audio'
+  content: string
 }
 
 export type Feedback = {
-  message: string; 
-  type: string; 
-  explanation?: string; 
+  message: string;
+  type: string;
+  explanation?: string;
   isCorrect: boolean
 }

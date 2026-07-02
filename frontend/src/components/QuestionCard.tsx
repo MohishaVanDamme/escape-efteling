@@ -24,7 +24,7 @@ export function QuestionCard({
                 <img
                     className="max-h-80 w-auto object-contain"
                     src={question.image_url}
-                    alt="Question image"
+                    alt="Afbeelding bij vraag"
                 />
             )}
             <Card.Header>

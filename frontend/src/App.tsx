@@ -26,7 +26,7 @@ function App() {
         if (team) setTeam(team);
       })
       .catch((error) => {
-        console.error("Failed to restore team from DB", error);
+        console.error("Herstellen van team uit database mislukt", error);
         localStorage.removeItem("teamId");
       })
       .finally(() => setLoading(false));

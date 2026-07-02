@@ -7,10 +7,10 @@ export const useTeamsView = (teams: Team[]) => {
     const duration =
       team.finished_at && team.started_at
         ? Math.floor(
-            (new Date(team.finished_at).getTime() -
-              new Date(team.started_at).getTime()) /
-              1000
-          )
+          (new Date(team.finished_at).getTime() -
+            new Date(team.started_at).getTime()) /
+          1000
+        )
         : null;
 
     const progressPercent =
