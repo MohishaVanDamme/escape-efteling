@@ -1,8 +1,9 @@
 import { useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Pagination } from "@heroui/react";
+import { Bulb, Stopwatch, Minus } from '@gravity-ui/icons';
 import { useLeaderboardStore } from "../../stores/useLeaderboardStore";
-import type { Team } from "../../types/database";
+import { PodiumPlace } from "./PodiumPlace";
+import { getDuration, getRightAnsweredCount } from "./HelperFunctions";
 
 const PAGE_SIZE = 5;
 
@@ -51,111 +52,114 @@ export function Leaderboard() {
   });
 
   const top3 = sortedTeams.slice(0, 3);
-
   const remainingTeams = sortedTeams.slice(3);
+  const firstPageTeams = remainingTeams.slice(0, 2);
+  const extraTeams = remainingTeams.slice(2);
 
   const totalPages = Math.max(
     1,
-    Math.ceil(remainingTeams.length / PAGE_SIZE)
+    1 + Math.ceil(Math.max(0, extraTeams.length) / PAGE_SIZE)
   );
 
-  const pagedTeams = remainingTeams.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE
-  );
+  const pagedTeams =
+    page === 1
+      ? firstPageTeams
+      : extraTeams.slice(
+        (page - 2) * PAGE_SIZE,
+        (page - 2) * PAGE_SIZE + PAGE_SIZE
+      );
+
+  const getRankNumber = (index: number) => {
+    if (page === 1) {
+      return 4 + index;
+    }
+
+    return 6 + (page - 2) * PAGE_SIZE + index;
+  };
 
   return (
-    <div className="mt-10">
-      <h2 className="text-xl font-bold mb-3">🏆 Leaderboard</h2>
+    <div className="px-5">
+      <p className="text-2xl font-bold py-5 text-center text-[#F8F1E7]">
+        Leaderboard
+      </p>
 
-      {/* Podium */}
-      <div className="flex justify-center items-end gap-6 mt-10 mb-12">
-        {top3[1] && (
-          <PodiumPlace
-            place={2}
-            name={top3[1].name}
-            className="bg-gray-300 h-32"
-          />
-        )}
+      {page === 1 && (
+        <>
+          {/* Podium */}
+          <div className="flex justify-center items-end gap-6 mb-10">
+            {top3[1] && (
+              <PodiumPlace
+                place={2}
+                team={top3[1]}
+              />
+            )}
 
-        {top3[0] && (
-          <PodiumPlace
-            place={1}
-            name={top3[0].name}
-            className="bg-yellow-400 h-40"
-            crown
-          />
-        )}
+            {top3[0] && (
+              <PodiumPlace
+                place={1}
+                team={top3[0]}
+              />
+            )}
 
-        {top3[2] && (
-          <PodiumPlace
-            place={3}
-            name={top3[2].name}
-            className="bg-orange-400 h-24"
-          />
-        )}
-      </div>
+            {top3[2] && (
+              <PodiumPlace
+                place={3}
+                team={top3[2]}
+              />
+            )}
+          </div>
+        </>
+      )}
 
       {/* Ranking */}
-      <AnimatePresence>
-        {pagedTeams.map((team, index) => (
-          <motion.div
-            key={team.id}
-            layout
-            layoutId={team.id}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{
-              layout: {
-                duration: 0.45,
-                type: "spring",
-              },
-            }}
-            className="flex justify-between items-center p-3 border-b bg-white rounded-lg mb-2 shadow"
-          >
-            <div>
-              <p className="font-bold">
-                {(page - 1) * PAGE_SIZE + index + 4}. {team.name}
-              </p>
+      {pagedTeams.map((team, index) => (
+        <div
+          key={team.id}
+          className="flex justify-between items-center p-3 border-b border-accent bg-accent rounded-lg mb-2 shadow text-[#F8F1E7]"
+        >
+          <div>
+            <p className="font-bold">
+              {getRankNumber(index)}. {team.name}
+            </p>
 
-              <p className="text-sm text-gray-500">
-                ❌ {team.wrong_answers} | 💡 {team.hint_count}
-              </p>
-            </div>
+            <p className="text-sm flex flex-row items-center gap-2">
+              {getRightAnsweredCount(team)} van de {team.final_word.length} <Minus className="rotate-90" /> {team.hint_count} <Bulb />
+            </p>
+          </div>
 
-            <div>
-              {team.finished_at ? (
-                <span className="text-green-600 font-bold">
-                  {getDuration(team)}
-                </span>
-              ) : (
-                <span>Vraag {team.current_question_index}</span>
-              )}
-            </div>
-          </motion.div>
-        ))}
-      </AnimatePresence>
+          <div>
+            {team.finished_at ? (
+              <span className="flex flex-row items-center gap-2">
+                <Stopwatch /> {getDuration(team)}
+              </span>
+            ) : (
+              <span>Vraag {team.current_question_index}</span>
+            )}
+          </div>
+        </div>
+      ))}
 
       {/* Pagination */}
       <div className="flex justify-center mt-6">
         <Pagination className="w-full">
-          <Pagination.Content>
+          <Pagination.Content className="flex justify-between w-full">
             <Pagination.Item>
               <Pagination.Previous
                 isDisabled={page === 1}
                 onPress={() => setPage(page - 1)}
+                className="text-[#F8F1E7] hover:bg-accent-hover"
               >
                 <Pagination.PreviousIcon />
-                <span>Prev</span>
+                <span>Vorige</span>
               </Pagination.Previous>
             </Pagination.Item>
             <Pagination.Item>
               <Pagination.Next
                 isDisabled={page === totalPages}
                 onPress={() => setPage(page + 1)}
+                className="text-[#F8F1E7] hover:bg-accent-hover"
               >
-                <span>Next</span>
+                <span>Volgende</span>
                 <Pagination.NextIcon />
               </Pagination.Next>
             </Pagination.Item>
@@ -166,42 +170,3 @@ export function Leaderboard() {
   );
 }
 
-function PodiumPlace({
-  place,
-  name,
-  className,
-  crown = false,
-}: {
-  place: number;
-  name: string;
-  className: string;
-  crown?: boolean;
-}) {
-  return (
-    <div className="text-center">
-      <div
-        className={`${className} w-24 md:w-28 rounded-t-xl flex items-center justify-center text-2xl font-bold shadow`}
-      >
-        {place}
-        {crown && " 👑"}
-      </div>
-
-      <p className="mt-2 font-bold">{name}</p>
-    </div>
-  );
-}
-
-function getDuration(team: Team) {
-  if (!team.finished_at || !team.started_at) return null;
-
-  const seconds = Math.floor(
-    (new Date(team.finished_at).getTime() -
-      new Date(team.started_at).getTime()) /
-    1000
-  );
-
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-
-  return `${m}m ${s}s`;
-}

@@ -1,4 +1,4 @@
-import {Persons, ArrowRightFromSquare, CrownDiamond} from '@gravity-ui/icons';
+import {Persons, ArrowRightFromSquare, CrownDiamond, LockFill} from '@gravity-ui/icons';
 import { Button } from '@heroui/react';
 import type { Dispatch, SetStateAction } from 'react';
 
@@ -26,6 +26,14 @@ export default function Sidebar(
         >
             <CrownDiamond />
           Leaderboard
+        </Button>
+        <Button
+          fullWidth
+          variant={activePage === "secret-word" ? "secondary": undefined}
+          onPress={() => setActivePage("secret-word")}
+        >
+          <LockFill />
+          Secret Word
         </Button>
       </nav>
 

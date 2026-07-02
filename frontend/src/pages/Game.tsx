@@ -21,18 +21,18 @@ export default function Game({ team }: { team: Team }) {
 
   const question = teamQuestion?.questions;
   const progressPercent =
-  totalQuestions > 0
-    ? Math.round((liveTeam.current_question_index / totalQuestions) * 100)
-    : 0;
+    totalQuestions > 0
+      ? Math.round((liveTeam.current_question_index / totalQuestions) * 100)
+      : 0;
 
   useEffect(() => {
-  const loadTotal = async () => {
-    const total = await getTotalQuestionsForTeam(team.id);
-    setTotalQuestions(total);
-  };
+    const loadTotal = async () => {
+      const total = await getTotalQuestionsForTeam(team.id);
+      setTotalQuestions(total);
+    };
 
-  loadTotal();
-}, [team.id]);
+    loadTotal();
+  }, [team.id]);
 
 
   const fetchTeam = async () => {
@@ -62,12 +62,15 @@ export default function Game({ team }: { team: Team }) {
           if (payload.new) {
             setLiveTeam((prev) => ({
               ...prev,
-              current_question_index: payload.new.current_question_index ?? prev.current_question_index,
+              current_question_index:
+                payload.new.current_question_index ?? prev.current_question_index,
               progress: payload.new.progress ?? prev.progress,
               escaped: payload.new.escaped ?? prev.escaped,
               escaped_image:
                 payload.new.escaped_image ?? prev.escaped_image,
               hint_count: payload.new.hint_count ?? prev.hint_count,
+              wrong_answers: payload.new.wrong_answers ?? prev.wrong_answers,
+              finished_at: payload.new.finished_at ?? prev.finished_at,
             }));
           }
         }
@@ -108,12 +111,13 @@ export default function Game({ team }: { team: Team }) {
     try {
       const result = await submitAnswer(team.id, teamQuestion, answer);
 
-      if (result.correct && result.newProgress) {
-        setLiveTeam((prev) => ({
-          ...prev,
-          progress: result.newProgress,
-        }));
-      }
+      setLiveTeam((prev) => ({
+        ...prev,
+        current_question_index: teamQuestion.order_index + 1,
+        progress: result.correct && result.newProgress ? result.newProgress : prev.progress,
+        wrong_answers: result.correct ? prev.wrong_answers : prev.wrong_answers + 1,
+        finished_at: result.finished ? result.finishedAt ?? prev.finished_at : prev.finished_at,
+      }));
 
       setFeedback({
         message: question.answer,
@@ -129,7 +133,7 @@ export default function Game({ team }: { team: Team }) {
 
   if (loading) return <Spinner size="xl" />;
 
-  if (!teamQuestion || !question) {
+  if (liveTeam.finished_at || !teamQuestion || !question) {
     return (
       <div>
         {liveTeam.escaped ? (
@@ -172,8 +176,8 @@ export default function Game({ team }: { team: Team }) {
                 onPress={async () => {
                   setFeedback(undefined);
 
-                  await reload();     
-                  await fetchTeam(); 
+                  await reload();
+                  await fetchTeam();
                 }}
                 className="border border-[#842229] text-white rounded-2xl px-4 py-2"
               >

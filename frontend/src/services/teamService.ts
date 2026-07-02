@@ -1,5 +1,6 @@
 import { supabase } from "../lib/supabase";
 import type { Team } from "../types/database";
+import { fetchSecretWord } from "./wordService";
 
 export const checkTeamNameExists = async (name: string) => {
   const trimmedName = name.trim();
@@ -20,7 +21,8 @@ export const checkTeamNameExists = async (name: string) => {
   return Boolean(data);
 };
 
-export const createTeam = async (name: string, finalWord: string) => {
+export const createTeam = async (name: string) => {
+  const finalWord = await fetchSecretWord();
   const trimmedName = name.trim();
 
   if (!trimmedName) {

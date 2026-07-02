@@ -97,7 +97,7 @@ export const assignTeamQuestionsFromRegion = async (
 
     const available = questionsByRegion[regionName] ?? [];
 
-    const byLevel = {
+    const byLevel: Record<number, { id: string; level: number }[]> = {
       1: shuffleArray(available.filter(q => q.level === 1)),
       2: shuffleArray(available.filter(q => q.level === 2)),
       3: shuffleArray(available.filter(q => q.level === 3)),
@@ -113,7 +113,7 @@ export const assignTeamQuestionsFromRegion = async (
 
     pool = shuffleArray(pool);
 
-    let selected = pool.slice(0, count);
+    const selected = pool.slice(0, count);
 
     if (selected.length < count) {
       const leftovers = shuffleArray(available).filter(
@@ -206,8 +206,15 @@ export const submitAnswer = async (
     })
     .eq("id", teamId);
 
+  const { data: remaining, error: remainingError } = await supabase
+    .from("team_questions")
+    .select("id")
+    .eq("team_id", teamId)
+    .is("answered_at", null);
+
+  if (remainingError) throw remainingError;
+
   if (!correct) {
-    // Haal het huidige aantal foute antwoorden op
     const { data: teamData, error: fetchError } = await supabase
       .from("teams")
       .select("wrong_answers")
@@ -216,7 +223,6 @@ export const submitAnswer = async (
 
     if (fetchError) throw fetchError;
 
-    // Verhoog het aantal met 1
     const { error: updateError } = await supabase
       .from("teams")
       .update({
@@ -225,6 +231,16 @@ export const submitAnswer = async (
       .eq("id", teamId);
 
     if (updateError) throw updateError;
+
+    if (!remaining || remaining.length === 0) {
+      const finishedAt = new Date().toISOString();
+      await supabase
+        .from("teams")
+        .update({ finished_at: finishedAt })
+        .eq("id", teamId);
+
+      return { correct: false, finished: true, finishedAt };
+    }
 
     return { correct: false };
   }
@@ -245,10 +261,18 @@ export const submitAnswer = async (
     .map((letter, idx) => (letter === "_" ? idx : -1))
     .filter((idx) => idx >= 0);
 
-
   if (emptyIndexes.length === 0) {
-    const newProgress = currentProgress;
-    return { correct: true, newProgress };
+    if (!remaining || remaining.length === 0) {
+      const finishedAt = new Date().toISOString();
+      await supabase
+        .from("teams")
+        .update({ finished_at: finishedAt })
+        .eq("id", teamId);
+
+      return { correct: true, newProgress: currentProgress, finished: true, finishedAt };
+    }
+
+    return { correct: true, newProgress: currentProgress };
   }
 
   const randomIndex =
@@ -264,14 +288,6 @@ export const submitAnswer = async (
     .update({ progress: newProgress })
     .eq("id", teamId);
 
-  const { data: remaining, error: remainingError } = await supabase
-    .from("team_questions")
-    .select("id")
-    .eq("team_id", teamId)
-    .is("answered_at", null);
-
-  if (remainingError) throw remainingError;
-
   if (!remaining || remaining.length === 0) {
     const finishedAt = new Date().toISOString();
     await supabase
@@ -286,24 +302,24 @@ export const submitAnswer = async (
 };
 
 export async function useHint(teamId: string) {
-    const { data, error } = await supabase
-        .from("teams")
-        .select("hint_count")
-        .eq("id", teamId)
-        .single();
+  const { data, error } = await supabase
+    .from("teams")
+    .select("hint_count")
+    .eq("id", teamId)
+    .single();
 
-    if (error) throw error;
+  if (error) throw error;
 
-    if (data.hint_count >= 3) {
-        throw new Error("Geen hints meer beschikbaar");
-    }
+  if (data.hint_count >= 3) {
+    throw new Error("Geen hints meer beschikbaar");
+  }
 
-    const { error: updateError } = await supabase
-        .from("teams")
-        .update({ hint_count: data.hint_count + 1 })
-        .eq("id", teamId);
+  const { error: updateError } = await supabase
+    .from("teams")
+    .update({ hint_count: data.hint_count + 1 })
+    .eq("id", teamId);
 
-    if (updateError) throw updateError;
+  if (updateError) throw updateError;
 
-    return data.hint_count + 1;
+  return data.hint_count + 1;
 }

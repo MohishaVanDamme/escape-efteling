@@ -4,6 +4,7 @@ import { Teams } from "./Teams";
 import { Leaderboard } from "./Leaderboard";
 import { Button, Drawer } from "@heroui/react";
 import { Bars } from "@gravity-ui/icons";
+import { SecretWord } from "./SecretWord";
 
 export default function AdminDashboard({ handleLogout }: { handleLogout: () => Promise<void>; }) {
   const [activePage, setActivePage] = useState("teams");
@@ -44,6 +45,7 @@ export default function AdminDashboard({ handleLogout }: { handleLogout: () => P
         <div className="w-full">
           {activePage === "teams" && <Teams />}
           {activePage === "leaderboard" && <Leaderboard />}
+          {activePage === "secret-word" && <SecretWord />}
         </div>
       </div>
     </div>

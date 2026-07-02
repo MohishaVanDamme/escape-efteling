@@ -1,78 +1,111 @@
 import { create } from "zustand";
 import { supabase } from "../lib/supabase";
-import type { RealtimeChannel } from "@supabase/supabase-js";
+import type {
+    RealtimeChannel,
+    RealtimePostgresChangesPayload,
+} from "@supabase/supabase-js";
 import type { Team } from "../types/database";
 
 const PAGE_SIZE = 6;
 
 type State = {
-  teams: Team[];
-  page: number;
-  total: number;
+    teams: Team[];
+    page: number;
+    total: number;
 
-  setPage: (p: number) => void;
-  fetchTeams: () => Promise<void>;
-  initRealtime: () => void;
+    setPage: (p: number) => void;
+    fetchTeams: () => Promise<void>;
+    initRealtime: () => void;
 };
 
 let channel: RealtimeChannel | null = null;
 
 export const useTeamsStore = create<State>((set, get) => ({
-  teams: [],
-  page: 1,
-  total: 0,
+    teams: [],
+    page: 1,
+    total: 0,
 
-  setPage: (page) => set({ page }),
+    setPage: (page) => set({ page }),
 
-  fetchTeams: async () => {
+    fetchTeams: async () => {
+        const { page } = get();
 
-    const { page } = get();
+        const from = (page - 1) * PAGE_SIZE;
+        const to = from + PAGE_SIZE - 1;
 
-    const from = (page - 1) * PAGE_SIZE;
-    const to = from + PAGE_SIZE - 1;
+        const { data, count } = await supabase
+            .from("teams")
+            .select("*", { count: "exact" })
+            .order("started_at", { ascending: false })
+            .range(from, to);
 
-    const { data, count } = await supabase
-        .from("teams")
-        .select("*", { count: "exact" })
-        .order("started_at", { ascending: false })
-        .range(from, to);
-
-    set({
-        teams: data ?? [],
-        total: count ?? 0,
-    });
+        set({
+            teams: data ?? [],
+            total: count ?? 0,
+        });
     },
 
     initRealtime: () => {
-    console.log("initRealtime");
-    if (channel) return;
+        if (channel) return;
 
-    channel = supabase
-        .channel("teams-live")
-        .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "teams" },
-        (payload) => {
-            console.log(payload)
-            const updated = payload.new as Team;
+        channel = supabase
+            .channel("teams-live")
+            .on(
+                "postgres_changes",
+                { event: "*", schema: "public", table: "teams" },
+                (payload: RealtimePostgresChangesPayload<Team>) => {
+                    set((state) => {
+                        switch (payload.eventType) {
+                            case "INSERT": {
+                                const newTeam = payload.new;
 
-            set((state) => {
-            const index = state.teams.findIndex(
-                (t) => t.id === updated.id
-            );
+                                if (state.page !== 1) {
+                                    return {
+                                        teams: state.teams,
+                                        total: state.total + 1,
+                                    };
+                                }
 
-            if (index === -1) return state;
+                                const nextTeams = [newTeam, ...state.teams.filter((team) => team.id !== newTeam.id)]
+                                    .slice(0, PAGE_SIZE);
 
-            const newTeams = [...state.teams];
-            newTeams[index] = {
-                ...newTeams[index],
-                ...updated,
-            };
+                                return {
+                                    teams: nextTeams,
+                                    total: state.total + 1,
+                                };
+                            }
 
-            return { teams: newTeams };
-            });
-        }
-        )
-        .subscribe();
+                            case "UPDATE": {
+                                const updated = payload.new;
+                                const index = state.teams.findIndex((team) => team.id === updated.id);
+
+                                if (index === -1) {
+                                    return state;
+                                }
+
+                                const nextTeams = [...state.teams];
+                                nextTeams[index] = {
+                                    ...nextTeams[index],
+                                    ...updated,
+                                };
+
+                                return { teams: nextTeams };
+                            }
+
+                            case "DELETE": {
+                                const deletedId = payload.old.id;
+                                return {
+                                    teams: state.teams.filter((team) => team.id !== deletedId),
+                                    total: Math.max(0, state.total - 1),
+                                };
+                            }
+
+                            default:
+                                return state;
+                        }
+                    });
+                }
+            )
+            .subscribe();
     },
 }));

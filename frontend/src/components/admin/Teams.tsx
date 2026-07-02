@@ -1,8 +1,9 @@
 import { useEffect } from "react";
+import { Card, Chip, Pagination } from "@heroui/react";
+import { Puzzle, Bulb, Stopwatch } from '@gravity-ui/icons';
+import { ProgressBar } from "../ProgressBar";
 import { useTeamsView } from "../../hooks/useTeamsView";
 import { useTeamsStore } from "../../stores/useTeamsStore";
-import { Card, Chip, Pagination } from "@heroui/react";
-import { ProgressBar } from "../ProgressBar";
 
 
 export function Teams() {
@@ -46,11 +47,11 @@ export function Teams() {
                                     <p className="font-bold">{team.name}</p>
 
                                     {team.finished_at ? (
-                                        <Chip color="success">
+                                        <Chip color="success" variant="primary">
                                             <Chip.Label>Klaar</Chip.Label>
                                         </Chip>
                                     ) : (
-                                        <Chip color="warning">
+                                        <Chip color="warning" variant="primary">
                                             <Chip.Label>Pending</Chip.Label>
                                         </Chip>
                                     )}
@@ -59,10 +60,10 @@ export function Teams() {
                                 <div className="flex items-center gap-4 my-4">
                                     <ProgressBar percent={team.progressPercent} />
 
-                                    <div className="basis-36 ml-4">
+                                    <div className="basis-48 ml-4">
                                         {team.duration && (
                                             <span className="flex justify-end items-center gap-1">
-                                                {formatTime(team.duration)}
+                                                {formatTime(team.duration)} <Stopwatch />
                                             </span>
                                         )}
                                     </div>
@@ -70,11 +71,11 @@ export function Teams() {
 
                                 <div className="flex justify-between">
                                     <span className="flex items-center gap-1">
-                                        {team.progress}
+                                        <Puzzle /> {team.progress}
                                     </span>
 
                                     <span className="flex items-center gap-1">
-                                        {team.hint_count}
+                                         {team.hint_count} <Bulb />
                                     </span>
                                 </div>
                             </Card.Content>
@@ -95,7 +96,7 @@ export function Teams() {
                                 className="text-[#F8F1E7] hover:bg-accent-hover"
                             >
                                 <Pagination.PreviousIcon />
-                                <span>Previous</span>
+                                <span>Vorige</span>
                             </Pagination.Previous>
                         </Pagination.Item>
 
@@ -109,10 +110,10 @@ export function Teams() {
                                     isActive={p === page}
                                     onPress={() => setPage(p)}
                                     className={
-    p === page
-      ? "bg-accent text-[#F8F1E7] rounded-2xl"
-      : "hover:bg-accent-hover text-[#F8F1E7]"
-  }
+                                        p === page
+                                            ? "bg-accent text-[#F8F1E7] rounded-2xl"
+                                            : "hover:bg-accent-hover text-[#F8F1E7]"
+                                    }
                                 >
                                     {p}
                                 </Pagination.Link>
@@ -125,7 +126,7 @@ export function Teams() {
                                 onPress={() => setPage(page + 1)}
                                 className="text-[#F8F1E7] hover:bg-accent-hover"
                             >
-                                <span>Next</span>
+                                <span>Volgende</span>
                                 <Pagination.NextIcon />
                             </Pagination.Next>
                         </Pagination.Item>

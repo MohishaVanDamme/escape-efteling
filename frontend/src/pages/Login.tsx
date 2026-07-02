@@ -8,7 +8,6 @@ import { Typewriter } from "../components/ui/Typewriter";
 import { scenes } from "../types/sceens";
 
 export default function Login({ onStart }: { onStart: (team: Team) => void }) {
-    const FINAL_WORD = 'FATA MORGANA';
     const [teamName, setTeamName] = useState(() => {
         if (typeof window === "undefined") return '';
         return localStorage.getItem('teamName') ?? '';
@@ -106,7 +105,7 @@ export default function Login({ onStart }: { onStart: (team: Team) => void }) {
         setIsSubmitting(true);
 
         try {
-            const team = await createTeam(teamName, FINAL_WORD);
+            const team = await createTeam(teamName);
 
             await assignTeamQuestionsFromRegion(team.id);
 
