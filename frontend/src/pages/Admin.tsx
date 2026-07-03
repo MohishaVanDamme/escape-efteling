@@ -11,7 +11,9 @@ export default function Admin() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
-    const ADMIN_EMAIL = import.meta.env.ADMIN_EMAIL;
+    // Prefer VITE_ prefix so Vite exposes the variable to the client build.
+    // Fall back to plain ADMIN_EMAIL for server-side or legacy setups.
+    const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || import.meta.env.ADMIN_EMAIL;
 
     useEffect(() => {
         const {
@@ -26,6 +28,11 @@ export default function Admin() {
 
     async function handleLogin() {
         setError("");
+
+        if (!ADMIN_EMAIL) {
+            setError('Administrator e-mail is niet geconfigureerd. Stel VITE_ADMIN_EMAIL in.');
+            return;
+        }
 
         const { error } = await supabase.auth.signInWithPassword({
             email,
