@@ -14,20 +14,34 @@ export function speak(text: string) {
         const voices = synth.getVoices();
 
         const preferred =
-            voices.find(v => v.name.toLowerCase().includes("female")) ||
-            voices.find(v => v.name.toLowerCase().includes("vrouw")) ||
-            voices.find(v => v.name.toLowerCase().includes("google nederlands")) ||
-            voices.find(v => v.lang === "nl-NL");
+            voices.find((v) => /female|vrouw|google nederlands/i.test(v.name)) ||
+            voices.find((v) => /^nl(-|_)?/i.test(v.lang));
 
-        if (preferred) utterance.voice = preferred;
+        if (preferred) {
+            utterance.voice = preferred;
+        }
 
+        if (synth.speaking) {
+            synth.cancel();
+        }
 
-        synth.cancel();
         synth.speak(utterance);
     }
 
     if (synth.getVoices().length === 0) {
-        synth.onvoiceschanged = setVoiceAndSpeak;
+        const onVoicesChanged = () => {
+            setVoiceAndSpeak();
+            synth.removeEventListener("voiceschanged", onVoicesChanged);
+        };
+
+        synth.addEventListener("voiceschanged", onVoicesChanged);
+
+        setTimeout(() => {
+            if (synth.getVoices().length > 0) {
+                setVoiceAndSpeak();
+                synth.removeEventListener("voiceschanged", onVoicesChanged);
+            }
+        }, 500);
     } else {
         setVoiceAndSpeak();
     }

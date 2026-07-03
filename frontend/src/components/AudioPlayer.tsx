@@ -18,12 +18,19 @@ export function AudioPlayer({
 
         if (isPlaying) {
             audioRef.current.pause();
-        } else {
-            audioRef.current.play();
+            return;
         }
 
-        setIsPlaying(!isPlaying);
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(() => {
+                setIsPlaying(false);
+            });
+        }
     };
+
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
 
     const handleTimeUpdate = () => {
         if (!audioRef.current) return;
@@ -56,15 +63,19 @@ export function AudioPlayer({
             <audio
                 ref={audioRef}
                 src={audioUrl}
+                preload="metadata"
+                playsInline
                 onTimeUpdate={handleTimeUpdate}
                 onLoadedMetadata={handleLoadedMetadata}
                 onEnded={handleEnded}
+                onPlay={handlePlay}
+                onPause={handlePause}
             />
-            <div className="cover" onClick={togglePlay}>
+            <div className="cover">
                 <img src="/EftelingLogo.png" alt="cover" />
 
                 <div className="overlay">
-                    <button className="play-btn">
+                    <button className="play-btn" type="button" onClick={togglePlay}>
                         {isPlaying ? <PauseFill /> : <PlayFill />}
                     </button>
                 </div>

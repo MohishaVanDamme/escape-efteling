@@ -1,5 +1,6 @@
 ﻿import { Button, FieldError, Input, Label, TextField } from "@heroui/react";
 import React, { useCallback, useEffect, useState } from "react";
+import { VolumeFill, VolumeSlashFill } from '@gravity-ui/icons';
 import { checkTeamNameExists, createTeam } from "../services/teamService";
 import { assignTeamQuestionsFromRegion } from "../services/gameService";
 import type { Team } from "../types/database";
@@ -15,6 +16,10 @@ export default function Login({ onStart }: { onStart: (team: Team) => void }) {
     const [teamNameError, setTeamNameError] = useState('');
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [voiceEnabled, setVoiceEnabled] = useState(() => {
+        if (typeof window === 'undefined') return false;
+        return localStorage.getItem('voiceEnabled') === 'true';
+    });
     const [step, setStep] = useState(() => {
         if (typeof window === 'undefined') return 0;
 
@@ -47,10 +52,25 @@ export default function Login({ onStart }: { onStart: (team: Team) => void }) {
     }, [teamName]);
 
     useEffect(() => {
-        if (scenes[step]) {
-            speak(scenes[step].speech);
+        localStorage.setItem("voiceEnabled", voiceEnabled ? 'true' : 'false');
+    }, [voiceEnabled]);
+
+    function handleSpeak(text: string) {
+        if (voiceEnabled) {
+            speak(text);
         }
-    }, [step]);
+    }
+
+    function toggleVoice() {
+        const nextValue = !voiceEnabled;
+        setVoiceEnabled(nextValue);
+
+        if (nextValue && scenes[step]) {
+            speak(scenes[step].speech);
+        } else {
+            window.speechSynthesis.cancel();
+        }
+    }
 
     function nextStep() {
         window.speechSynthesis.cancel();
@@ -59,6 +79,10 @@ export default function Login({ onStart }: { onStart: (team: Team) => void }) {
         localStorage.setItem('introStep', String(next));
         if (next >= scenes.length) {
             localStorage.setItem('introFinished', 'true');
+        }
+
+        if (scenes[next]) {
+            handleSpeak(scenes[next].speech);
         }
 
         setFade(false);
@@ -154,6 +178,17 @@ export default function Login({ onStart }: { onStart: (team: Team) => void }) {
             <div style={cardStyle}>
                 {step < scenes.length ? (
                     <>
+                        <div className="flex justify-end mb-4">
+                            <Button
+                                isIconOnly
+                                type="button"
+                                onPress={toggleVoice}
+                                className={`px-3 py-2 rounded-full text-sm font-semibold ${voiceEnabled ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                            >
+                                {voiceEnabled ? <VolumeFill /> : <VolumeSlashFill />}
+                            </Button>
+                        </div>
+
                         <Typewriter
                             text={scenes[step].display}
                             onDone={handleTypingDone}
