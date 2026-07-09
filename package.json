@@ -2,7 +2,7 @@
   "name": "escape-efteling-root",
   "private": true,
   "scripts": {
-    "build": "cd frontend && npm install && npm run build"
+    "build": "npm install --prefix frontend && npm run build --prefix frontend"
   },
   "engines": {
     "node": "20.x"
