@@ -137,6 +137,14 @@ export default function Game({ team }: { team: Team }) {
 
   if (loading) return <Spinner size="xl" />;
 
+  if (!question) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Spinner size="xl" />
+      </div>
+    );
+  }
+
   if (showEndCard || (liveTeam.finished_at && !feedback && !teamQuestion)) {
     return (
       <div>
