@@ -22,6 +22,8 @@ export default function Game({ team }: { team: Team }) {
   const [finishedAfterSubmit, setFinishedAfterSubmit] = useState(false);
 
   const question = teamQuestion?.questions;
+
+  const hasRenderableQuestion = Boolean(question?.id && question?.question && question?.answer);
   const progressPercent =
     totalQuestions > 0
       ? Math.round((liveTeam.current_question_index / totalQuestions) * 100)
@@ -137,7 +139,7 @@ export default function Game({ team }: { team: Team }) {
 
   if (loading) return <Spinner size="xl" />;
 
-  if (!question) {
+  if (!hasRenderableQuestion) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Spinner size="xl" />
@@ -176,11 +178,13 @@ export default function Game({ team }: { team: Team }) {
 
       <div className="flex flex-1 flex-col justify-center items-center w-full gap-5 p-5">
         <div className="w-full">
-          <QuestionCard
-            question={question}
-            onSubmit={handleSubmit}
-            feedback={feedback}
-          />
+          {question && (
+            <QuestionCard
+              question={question}
+              onSubmit={handleSubmit}
+              feedback={feedback}
+            />
+          )}
 
           {feedback && (
             <div className="w-full flex justify-center mt-2">
