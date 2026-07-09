@@ -18,6 +18,8 @@ export default function Game({ team }: { team: Team }) {
   const [liveTeam, setLiveTeam] = useState(team);
   const [hint, setHint] = useState<Hint | null>(null);
   const [feedback, setFeedback] = useState<Feedback | undefined>(undefined);
+  const [showEndCard, setShowEndCard] = useState(false);
+  const [finishedAfterSubmit, setFinishedAfterSubmit] = useState(false);
 
   const question = teamQuestion?.questions;
   const progressPercent =
@@ -116,8 +118,10 @@ export default function Game({ team }: { team: Team }) {
         current_question_index: teamQuestion.order_index + 1,
         progress: result.correct && result.newProgress ? result.newProgress : prev.progress,
         wrong_answers: result.correct ? prev.wrong_answers : prev.wrong_answers + 1,
-        finished_at: result.finished ? result.finishedAt ?? prev.finished_at : prev.finished_at,
       }));
+
+      setFinishedAfterSubmit(Boolean(result.finished));
+      setShowEndCard(false);
 
       setFeedback({
         message: question.answer,
@@ -133,7 +137,7 @@ export default function Game({ team }: { team: Team }) {
 
   if (loading) return <Spinner size="xl" />;
 
-  if (liveTeam.finished_at || !teamQuestion || !question) {
+  if (showEndCard || (liveTeam.finished_at && !feedback && !teamQuestion)) {
     return (
       <div>
         {liveTeam.escaped ? (
@@ -174,14 +178,20 @@ export default function Game({ team }: { team: Team }) {
             <div className="w-full flex justify-center mt-2">
               <Button
                 onPress={async () => {
-                  setFeedback(undefined);
+                  if (finishedAfterSubmit) {
+                    setFeedback(undefined);
+                    setShowEndCard(true);
+                    await fetchTeam();
+                    return;
+                  }
 
+                  setFeedback(undefined);
                   await reload();
                   await fetchTeam();
                 }}
                 className="border border-[#842229] text-white rounded-2xl px-4 py-2"
               >
-                Volgende vraag
+                {finishedAfterSubmit ? "Naar eindkaart" : "Volgende vraag"}
               </Button>
             </div>
           )}

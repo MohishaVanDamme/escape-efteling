@@ -175,6 +175,7 @@ code {
     border-radius: 16px;
     overflow: hidden;
     cursor: pointer;
+    pointer-events: auto;
 }
 
 .cover img {
@@ -193,6 +194,7 @@ code {
     align-items: center;
     justify-content: center;
     background: rgba(0, 0, 0, 0.1);
+    pointer-events: none;
 }
 
 /* PLAY BUTTON */
@@ -207,6 +209,9 @@ code {
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    position: relative;
+    z-index: 20;
+    pointer-events: auto;
 
     /* mobile optimalisatie */
     touch-action: manipulation;
